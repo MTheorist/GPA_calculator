@@ -128,25 +128,24 @@ void check_config(){
 	if(cfg.is_open()){
 		cout<<"OPEN..."<<endl;	
 	}
-	while( cfg.getline( word, 30 ) ){
+	while( cfg >> word ){
 		if( ( word[0] == '/' ) && ( word[1] == '/' ) ){
 			continue;	
 		}
 		for( int i=0 ; i < n_settings ; i++ ){
 		
 			if( strcmp( word , list[i] )==0 ){
-				
+					
 				for( int j=0 ; j < 2 ; j++ ){
 					cfg >> word;
 				}
 				for( int j=0 ; j < strlen(word) ; j++ ){
 					if( word[j] == '[' ){
 						for( int k=( j+1 ) ; k < strlen(word) ; ){
-							while ( word[k] != ']' ){
-								range += word[k];
-								k++;
+							if(word[k] == ']'){
+								break;	
 							}
-							break;
+							range += word[k]; 
 						}
 					}
 					else{
@@ -167,7 +166,7 @@ void check_config(){
 		}
 	}
 	cfg.close();
-	//cout<<n_fa<<" : "<<n_gpa;
+	cout<<n_fa<<" : "<<n_gpa;
 }
 
 void get_marks(){
