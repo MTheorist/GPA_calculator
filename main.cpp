@@ -125,12 +125,17 @@ void check_config(){
 	string range;
 	fstream cfg;
 	cfg.open("Files/config.txt", ios::in);
-	while( cfg>>word ){
+	if(cfg.is_open()){
+		cout<<"OPEN..."<<endl;	
+	}
+	while( cfg.getline( word, 30 ) ){
 		if( ( word[0] == '/' ) && ( word[1] == '/' ) ){
 			continue;	
 		}
 		for( int i=0 ; i < n_settings ; i++ ){
+		
 			if( strcmp( word , list[i] )==0 ){
+				
 				for( int j=0 ; j < 2 ; j++ ){
 					cfg >> word;
 				}
@@ -144,9 +149,9 @@ void check_config(){
 							break;
 						}
 					}
-					/*(else{
+					else{
 						continue;	
-					}*/
+					}
 				}
 			}
 			
@@ -162,7 +167,7 @@ void check_config(){
 		}
 	}
 	cfg.close();
-	cout<<n_fa<<" : "<<n_gpa;
+	//cout<<n_fa<<" : "<<n_gpa;
 }
 
 void get_marks(){
