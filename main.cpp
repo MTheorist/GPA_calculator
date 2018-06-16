@@ -130,6 +130,7 @@ void check_config(){
 	}
 	while( cfg >> word ){
 		if( ( word[0] == '/' ) && ( word[1] == '/' ) ){
+			cfg.getline( word, 30);
 			continue;	
 		}
 		for( int i=0 ; i < n_settings ; i++ ){
@@ -142,10 +143,11 @@ void check_config(){
 				for( int j=0 ; j < strlen(word) ; j++ ){
 					if( word[j] == '[' ){
 						for( int k=( j+1 ) ; k < strlen(word) ; ){
-							if(word[k] == ']'){
-								break;	
+							while ( word[k] != ']' ){
+								range += word[k];
+								k++;
 							}
-							range += word[k]; 
+							break;
 						}
 					}
 					else{
