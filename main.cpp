@@ -1,5 +1,5 @@
 //add filestream EVERY-fucking-WHERE...
-//check line 206 
+//check line 214
 #define n_sub 3
 #include <iostream>
 #include <fstream>
@@ -29,14 +29,14 @@ class std_marks : public std_details{
 	float perc[n_sub], gpa[n_sub], cgpa;
 	public:
 		std_marks();
-		float calc_perc(int i);
-		float calc_gpa(int j);
-		float calc_cgpa();		
+		float calc_perc(int i); //calculates the percentage in each subject
+		float calc_gpa(int j); //calculates the GPA in each subject
+		float calc_cgpa(); //calculates the CGPA in each subject		
 };
 
 void check_config(); //check the config file for any updates. 
-void get_marks();
-string assign_ID();
+void get_marks();	//input marks of the student in total "n_sub" subjects
+string assign_ID(); //assigns a unique roll number while keeping check on the used IDs
  
 int main(){
 	/*
@@ -103,7 +103,7 @@ float std_marks::calc_perc(int i){
 }
 
 float std_marks::calc_gpa(int j){
-		gpa[j] = (perc[j]/100)*5; //keep it variable.. preferable use file streaming later
+		gpa[j] = (perc[j]/100)*n_gpa;
 		return gpa[j];
 }
 
@@ -125,25 +125,23 @@ void check_config(){
 	string range;
 	fstream cfg;
 	cfg.open("Files/config.txt", ios::in);
-	if(cfg.is_open()){
+	/*if(cfg.is_open()){
 		cout<<"OPEN..."<<endl;	
-	}
+	}*/
 	while( cfg >> word ){
-		if( ( word[0] == '/' ) && ( word[1] == '/' ) ){
-			cout<<word;
-			cfg.getline( word, 30);
-			cout<<word<<endl;
+		if(  ( ( word[0] == '/' ) && ( word[1] == '/' ) ) || strlen( word ) ==0 ){
 			continue;	
 		}
 		for( int i=0 ; i < n_settings ; i++ ){
 		
 			if( strcmp( word , list[i] )==0 ){
-					
+				//cout<<"A";	
 				for( int j=0 ; j < 2 ; j++ ){
 					cfg >> word;
 				}
 				for( int j=0 ; j < strlen(word) ; j++ ){
 					if( word[j] == '[' ){
+
 						for( int k=( j+1 ) ; k < strlen(word) ; ){
 							while ( word[k] != ']' ){
 								range += word[k];
@@ -156,21 +154,22 @@ void check_config(){
 						continue;	
 					}
 				}
-			}
-			
-			switch(i){
-				case 0:
-					n_fa = conv_to_int( (char*)range[0] );
-					break;
-				
-				case 1:
-					n_gpa = conv_to_int( (char*)range[0] );
-					break;
+				char*marks = &range[0];
+				switch(i){
+					case 0:
+						n_fa = conv_to_int( marks );
+						break;
+						
+					case 1:
+						n_gpa = conv_to_int( marks );
+						break;
+				}
 			}
 		}
+		range = "\0";
 	}
 	cfg.close();
-	cout<<n_fa<<" : "<<n_gpa;
+	//cout<<n_fa<<" : "<<n_gpa;
 }
 
 void get_marks(){
