@@ -130,7 +130,9 @@ void check_config(){
 	}
 	while( cfg >> word ){
 		if( ( word[0] == '/' ) && ( word[1] == '/' ) ){
+			cout<<word;
 			cfg.getline( word, 30);
+			cout<<word<<endl;
 			continue;	
 		}
 		for( int i=0 ; i < n_settings ; i++ ){
