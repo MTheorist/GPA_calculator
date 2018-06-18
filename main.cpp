@@ -21,18 +21,20 @@ class std_details{
 	int s_class;
 	public: 
 		std_details(); 
-		void get_details(int s_no);	//function under construction...
+		void get_details();	//function under construction...
 		void ret_details(int identifier); //returns the data according to the given identifier
-};
+		void show_details();	// [MFReaper: #5]
+}st_details;	// [MFReaper: #5]
 
-class std_marks : public std_details{
+class std_marks{	// removed inheritance [MFReaper: #5]
 	float perc[n_sub], gpa[n_sub], cgpa;
 	public:
 		std_marks();
 		float calc_perc(int i); //calculates the percentage in each subject
 		float calc_gpa(int j); //calculates the GPA in each subject
-		float calc_cgpa(); //calculates the CGPA in each subject		
-};
+		float calc_cgpa(); //calculates the CGPA in each subject
+		void show_marks();	//[MFReaper: #5]		
+}st_marks;	//[MFReaper: #5]
 
 void check_config(); //check the config file for any updates. 
 void get_marks();	//input marks of the student in total "n_sub" subjects
@@ -45,8 +47,29 @@ int main(){
 	cout<<endl;
 	int x;
 	*/
-	std_marks mk24;
 	check_config();
+	
+	// [MFReaper: #5]
+	for( int i = 0; i < 1; i++ ) {
+		cout << endl;
+		st_details.get_details();
+		get_marks();
+		for( int i = 0; i < n_sub; i++ ) {
+			st_marks.calc_perc( i );
+			st_marks.calc_gpa( i );
+		}
+		st_marks.calc_cgpa();
+		cout << endl;
+	}
+	
+	cout << endl;
+	st_details.show_details();
+	// well...weird error check this out...show_details() ki last line run karti hai, but not the next line here
+	// file streaming perfect tho
+	cout << "B" << endl;
+	st_marks.show_marks();
+	cout << endl;
+	
 	//mk24.get_details(1);
 	//get_marks();	
 	
@@ -75,7 +98,7 @@ std_details::std_details(){
 	s_class = 0;	
 }
 
-void std_details::get_details( int s_no ){
+void std_details::get_details( ){
 	cout<<"Scholar ID: ";
 	ID = assign_ID();
 	cout<<ID<<endl;
@@ -83,8 +106,16 @@ void std_details::get_details( int s_no ){
 	cin>>name;
 	cout<<"Section: ";
 	cin>>sec;
+	cin.ignore();
 	cout<<"Class: ";
 	cin>>s_class;
+	
+	// [MFReaper: #5]
+	fstream fout;
+	fout.open( "Files/details.dat", ios::out | ios::app | ios::binary );
+	fout.write( (char*&)st_details, sizeof( std_details ) );
+	fout.close();
+	return;
 }
 
 //class: student marks
@@ -189,7 +220,19 @@ void get_marks(){
 			marks[i] = 0;
 			i--;
 		}
-	}	
+	}
+	
+	// [MFReaper: #5]
+	for( int i = 0; i < n_sub; i++ ) {
+		st_marks.calc_perc( i );
+		st_marks.calc_gpa( i );
+	}
+	st_marks.calc_cgpa();
+	fstream fout;
+	fout.open( "Files/Marks.dat", ios::out | ios::app | ios::binary );
+	fout.write( (char*)&st_marks, sizeof( std_marks ) );
+	fout.close();
+	return;
 }
 
 string assign_ID(){
@@ -220,4 +263,33 @@ string assign_ID(){
 			return line;
 		}	
 	}
-}	
+}
+
+// [MFReaper: #5]
+
+void std_details::show_details() {
+	std_details test;
+	fstream fin;
+	fin.open( "Files/details.dat", ios::in | ios::binary );
+	while( fin.read( (char*)&test, sizeof( std_details ) ) ) {
+		cout << endl << name << endl << ID << endl << sec << endl << s_class << endl;
+	}
+	fin.close();
+	cout << "A" << endl;
+	return;
+}
+
+void std_marks::show_marks() {
+	cout << "C" << endl;
+	std_marks test2;
+	fstream fin;
+	fin.open( "Files/Marks.dat", ios::in | ios::binary );
+	while( fin.read( (char*)&test2, sizeof( std_marks ) ) ) {
+		for( int i = 0; i < n_sub; i++ ) {
+			cout << endl << endl << i << endl << perc[i] << gpa[i] << endl;
+		}
+		cout << cgpa;
+	}
+	fin.close();
+	return;
+}
