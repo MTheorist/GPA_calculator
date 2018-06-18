@@ -15,11 +15,12 @@ int n_fa = 0, n_gpa = 0;
 char list[n_settings][10] = { "n_fa" , "n_gpa" };
 
 class std_details{
-	string name;
 	string ID;
-	char sec;
+	string name;
 	int s_class;
-	public: 
+	char sec;
+	public:
+		static int n_var;
 		std_details(); 
 		void get_details();	//function under construction...
 		void ret_details(int identifier); //returns the data according to the given identifier
@@ -27,9 +28,17 @@ class std_details{
 }st_details;	// [MFReaper: #5]
 
 class std_marks{	// removed inheritance [MFReaper: #5]
+		void get_details(void);		//function under construction...
+		void save_details(void);	//streams all the user input data into the database file
+		void show_details(void);	//outputs the data saved in the file
+} sw_det, sr_det;
+
+class std_marks{
 	float perc[n_sub], gpa[n_sub], cgpa;
 	public:
+		static int n_var;
 		std_marks();
+
 		float calc_perc(int i); //calculates the percentage in each subject
 		float calc_gpa(int j); //calculates the GPA in each subject
 		float calc_cgpa(); //calculates the CGPA in each subject
@@ -39,6 +48,16 @@ class std_marks{	// removed inheritance [MFReaper: #5]
 void check_config(); //check the config file for any updates. 
 void get_marks();	//input marks of the student in total "n_sub" subjects
 string assign_ID(); //assigns a unique roll number while keeping check on the used IDs
+		float calc_perc(int i);	//calculates the percentage in each subject
+		float calc_gpa(int j);	//calculates the GPA in each subject
+		float calc_cgpa(void);	//calculates the CGPA in each subject
+		void save_marks(void);	//streams all the user input data into the database file
+		void show_marks(void);	//outputs the data saved in the file		
+} sw_mks, sr_mks;
+
+void check_config(void);	//check the config file for any updates. 
+void get_marks(void);		//input marks of the student in total "n_sub" subjects
+string assign_ID();			//assigns a unique roll number while keeping check on the used IDs
  
 int main(){
 	/*
@@ -72,25 +91,34 @@ int main(){
 	
 	//mk24.get_details(1);
 	//get_marks();	
+	sw_det.get_details();
+	get_marks();	
 	
-	/*
 	for( int i = 0 ; i < n_sub ; i++ ){
-		cout<<endl<<"PERC: "<<mk24.calc_perc(i);	
+		cout<<endl<<"PERC: "<<sw_mks.calc_perc(i);	
 	}
 	
 	for( int i = 0 ; i < n_sub ; i++ ){
-		cout<<endl<<"GPA:"<<mk24.calc_gpa(i);	
+		cout<<endl<<"GPA:"<<sw_mks.calc_gpa(i);	
 	}
 	
-	cout<<endl<<"CGPA: "<<mk24.calc_cgpa();	
-	*/
+	cout<<endl<<"CGPA: "<<sw_mks.calc_cgpa();	
+	
+	sw_det.save_details();
+	sw_mks.save_marks();
+	getch();
+	system("cls");
+	sr_det.show_details();
+	sr_mks.show_marks();
 	
 	return 0;	
 }
 
-//Class Functions...
+//CLASS FUNCTIONS...
 
-//class: student details
+//class: std_details
+
+int std_details::n_var = 4;
 
 std_details::std_details(){
 	name = "";
@@ -99,6 +127,8 @@ std_details::std_details(){
 }
 
 void std_details::get_details( ){
+=======
+void std_details::get_details();
 	cout<<"Scholar ID: ";
 	ID = assign_ID();
 	cout<<ID<<endl;
@@ -115,10 +145,45 @@ void std_details::get_details( ){
 	fout.open( "Files/details.dat", ios::out | ios::app | ios::binary );
 	fout.write( (char*&)st_details, sizeof( std_details ) );
 	fout.close();
+	cout<<"Class: ";
+	cin>>s_class;
+	cout<<"Section: ";
+	cin>>sec;
 	return;
 }
 
-//class: student marks
+void std_details::save_details(){
+	ofstream db;
+	db.open("Files/data.dat", ios::out | ios::app | ios::binary);
+	
+	// MFReaper: Rewrote code. included indentation. No issues.
+	if ( db ) {
+		db.write( (char*)&sw_det, sizeof( std_details ) );
+		//cout << "File Opened";
+	}
+	db.close();
+	return;	
+}
+
+void std_details::show_details(){
+	ifstream s_data;
+	s_data.open("Files/data.dat", ios::in | ios::binary);
+	for( int i=0 ; i < n_types ; i++ ) {	//reading the data from the file
+		s_data.read( (char*)&sr_det, sizeof(std_details) );
+		//the data is now saved in sr_det automatically
+		cout << "ID: " << sr_det.ID << endl;	
+		cout << "Name: " << sr_det.name << endl;
+		cout << "Class: " << sr_det.s_class << endl;
+		cout << "Section: " << sr_det.sec << endl;
+	}
+	s_data.close();
+	return;	
+}
+
+//class: std_marks
+
+int std_marks::n_var = 3;
+
 std_marks::std_marks(){
 		int i=0;
 		for( ; i< n_sub ; i++){
@@ -147,9 +212,50 @@ float std_marks::calc_cgpa(){
 		return cgpa;
 }
 
-//Class Functions END HERE
+void std_marks::save_marks(){
+	ofstream db;
+	db.open("Files/data.dat", ios::out | ios::app | ios::binary);
+	
+	// MFReaper: Rewrote code. included indentation. No issues.
+	if ( db ) {
+		db.write( (char*)&sw_mks, sizeof( std_marks ) );
+		//cout << "File Opened";
+	}
+	db.close();
+	return;		
+}
 
-//Program Functions...
+void std_marks::show_marks(){
+	ifstream s_data;
+	s_data.open("Files/data.dat", ios::in | ios::binary);
+	for( int i=0; i < n_types ; i++ ) {	//reading the data from the file
+		s_data.read( (char*)&sr_mks, sizeof(std_marks) );
+		//the data is now saved in sr_mks automatically
+		cout<< "Marks:- \n";
+		for(int i=0 ; i < n_sub ; i++){
+			cout<< "\tSubject " << i <<	": " << marks[i];
+			cout<<endl;
+		}
+		cout<< "Percentage:- \n";
+		for(int i=0 ; i < n_sub ; i++){
+			cout<<"\tSubject "<< i << ": " << sr_mks.perc[i];
+			cout<<endl;
+		}
+		cout<< "GPA:- \n";
+		for(int i=0 ; i < n_sub ; i++){
+			cout<<"\tSubject "<< i << ": " << sr_mks.gpa[i];
+			cout<<endl;
+		}
+		cout<< "CGPA: " << sr_mks.cgpa;
+		cout<<endl;
+	}
+	s_data.close();	
+	return;	
+}
+
+//CLASS FUNCTIONS END HERE
+
+//PROGRAM FUNCTIONS...
 
 void check_config(){		
 	char word[30];
@@ -206,16 +312,17 @@ void check_config(){
 void get_marks(){
 	cout<<"Enter marks:- \n";
 	for( int i = 0 ; i < n_sub ; i++ ){
+		cout<< "\tSubject " << ( i+1 ) << ": ";
 		cin>>marks[i];
 		if( ( marks[i] <= n_fa ) && ( marks[i] >= 0 ) ){
 			continue;
 		}
 		else{
-			cout<<"Marks lie out of range. \nRange: 0-"<<n_fa;
+			cout<<"\tMarks lie out of range. \n\tRange: 0-"<<n_fa;
 			getch();
 			cout<<"\r";
 			gotoXY( 0 , -2 , 1 );
-			cout<<"       \n                              \n                \r";
+			cout<<"             \n                                      \n                        \r";
 			gotoXY( 0 , -2 , 1 );
 			marks[i] = 0;
 			i--;
