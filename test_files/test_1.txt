@@ -1,0 +1,1 @@
+This	file	serves	the	purpose	of	telling	how	c++	treats	tabs.

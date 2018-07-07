@@ -1,5 +1,3 @@
-//add filestream EVERY-fucking-WHERE...
-//check line 214
 #define n_sub 3
 #include <iostream>
 #include <fstream>
@@ -11,10 +9,10 @@
 using namespace std;
 
 float marks[n_sub];
-const int n_settings = 2;
-int n_fa = 0, n_gpa = 0;
-int g_pos_file = 0, p_pos_file = 0;
-char list[n_settings][10] = { "n_fa" , "n_gpa" };
+const int n_settings = 2;								//number of settings (variables, passwords...etc.) stored in the config.txt file
+int tm_fa = 0, tm_gpa = 0;
+int g_pos_file = 0, p_pos_file = 0;						//used for seek[g/p] and tell[g/p] functions to maniplate file
+char list[n_settings][10] = { "tm_fa" , "tm_gpa" };		//setting currently available in config.txt
 const int name_len = 30;
 const int ID_len = 10;
 
@@ -25,44 +23,46 @@ class std_details{
 	char sec;
 	public: 
 		std_details();
-		string assign_ID(); //assigns a unique roll number while keeping check on the used IDs 
-		void enter_details();	//function under construction...
-		void add_details();
-		void show_details();	
-}w_det, r_det;	
+		char* assign_ID(); 			//assigns a unique roll number while keeping check on the used IDs 
+		void enter_details();		//function under construction...
+		void add_details();			//stores the entered details into the .bin file
+		void show_details(char*);	//extracts the data from the file and displays it
+}w_det, r_det;						//w_det: write details TO file; r_det:read details FROM file
 
 class std_marks{	
 	float perc[n_sub], gpa[n_sub], cgpa;
 	public:
 		std_marks();
-		float calc_perc(int i); //calculates the percentage in each subject
-		float calc_gpa(int j); //calculates the GPA in each subject
-		float calc_cgpa(); //calculates the CGPA in each subject
-		void add_marks();
-		void show_marks();		
-}w_marks, r_marks;	
+		float calc_perc(int i); 	//calculates the percentage in each subject
+		float calc_gpa(int j); 		//calculates the GPA in each subject
+		float calc_cgpa(); 			//calculates the CGPA in each subject
+		void add_marks();			//stores the entered marks into the .bin file
+		void show_marks();			//extracts the data from the file and displays it
+}w_marks, r_marks;					//w_marks: writes marks To file; r_marks: read marks FROM file
 
-void check_config(); //check the config file for any updates. 
-void get_marks();	//input marks of the student in total "n_sub" subjects
+void check_config(); 				//checks the config file for any updates. 
+void get_marks();					//input marks of the student in total "n_sub" subjects
+
+//---------------MAIN PROGRAM---------------//
  
 int main(){
 	check_config();
 //	w_det.enter_details();
-//	cout << endl;
+	cout << endl;
 //	w_det.add_details();
-	r_det.show_details();
+//	r_det.show_details( "A1" );
 //	cout <<"Test output 1"<<endl;
-	r_marks.show_marks();
-//	get_marks();
+//	r_marks.show_marks();
+	get_marks();
 //	cout <<"Test output 2"<<endl;	
 //	w_marks.add_marks();
 //	cout <<"Test output 3"<<endl;
 	return 0;	
 }
 
-//Class Functions...
+//---------------CLASS FUNCTIONS---------------//
 
-//class: student details
+//class: std_details [student details]
 
 std_details::std_details(){
 	for(int i=0 ; i<name_len ; i++ ){
@@ -75,41 +75,25 @@ std_details::std_details(){
 	s_class = 0;	
 }
 
-string std_details::assign_ID(){
-	char line[ID_len], line_1[ID_len];
-	ifstream fin, fin_1;
-	ofstream fout_1;
-	fin.open("Files/unique_id.txt");
-	fin_1.open("Files/used_unique_id.txt");
-	while(!fin.eof()){	
-		fin >> line;
-		fin_1 >> line_1;
-		//char* word = &line[0];
-		//char* word_1 = &line_1[0];
-		if( strcmp( line , line_1 )==0 ){			
-			//compares the existing text file with a list of all the unique student id
-			//if the id is already in use, it assigns a different id
-			//if bool holds true: return value= 0
-		}
-		else{
-			fin.close();
-			fin_1.close();
-			//include the following code elsewhere...
-			/*
-			fout_1.open("Files/used_unique_id.txt", ios::app);
-			fout_1<<line<<"\n";	
-			fout_1.close();
-			*/ 
-			strcpy( ID , line );
-			//cout<<ID;
-			return "\0";
-		}	
-	}
+char* std_details::assign_ID(){
+	// input: "Files/unique_id.txt"
+	// dat: "Files/details.dat"
+	char id[ID_len];
+	fstream fin_txt, fin_dat;
+	fin_txt.open( "Files/unique_id.txt", ios::in );
+	fin_dat.open( "Files/details.dat", ios::in | ios::binary );
+	do {
+		fin_txt >> id;
+	}while( fin_dat.read( (char*)&r_det, sizeof( std_details ) ) );
+//	cout << id << endl;
+	fin_dat.close();
+	fin_txt.close();
+	return id;
 }
 
 void std_details::enter_details( ){
 	cout<<"Scholar ID: ";
-	assign_ID();
+	strcpy( ID, assign_ID() );
 	cout<<ID<<endl;
 	cout<<"First Name: ";
 	cin>>name;
@@ -133,24 +117,35 @@ void std_details::add_details(){
 	return;
 }
 
-void std_details::show_details() {
+void std_details::show_details( char* id ) {
 	ifstream fin;
 	fin.open( "Files/details.dat", ios::in | ios::binary );
 	//fin.seekg(0);
 	
+	
 	while( fin.read( (char*)&r_det, sizeof( std_details ) ) ) {
+		/*
 		cout<< "Name: " << r_det.name << endl;
 		cout<< "ID: " << r_det.ID << endl;
 		cout<< "Class: " << r_det.s_class << endl;
 		cout<< "Section: " << r_det.sec << endl;
 		g_pos_file = fin.tellg();
+		*/
+		if( strcmp( r_det.ID, id ) == 0 ) {
+			cout<< "Name: " << r_det.name << endl;
+			cout<< "ID: " << r_det.ID << endl;
+			cout<< "Class: " << r_det.s_class << endl;
+			cout<< "Section: " << r_det.sec << endl;
+			g_pos_file = fin.tellg();
+			break;
+		}
 	}
 	cout<<g_pos_file<<endl;
 	fin.close();
 	return;
 }
 
-//class: student marks
+//class: std_marks [student marks]
 
 std_marks::std_marks(){
 		int i=0;
@@ -162,12 +157,12 @@ std_marks::std_marks(){
 }
 
 float std_marks::calc_perc(int i){
-		perc[i] = (marks[i]/n_fa)*100;
+		perc[i] = (marks[i]/tm_fa)*100;
 		return perc[i];
 }
 
 float std_marks::calc_gpa(int j){
-		gpa[j] = (perc[j]/100)*n_gpa;
+		gpa[j] = (perc[j]/100)*tm_gpa;
 		return gpa[j];
 }
 
@@ -182,16 +177,6 @@ float std_marks::calc_cgpa(){
 
 void std_marks::add_marks(){
 	fstream fout;
-	/*cout<<"Percentage:- \n";
-	for( int i = 0; i < n_sub; i++ ) {
-		cout<<"\tSubject "<< (i+1) << ": " << w_marks.perc[i] << endl;
-	}
-	cout<<"GPA:- \n";
-	for( int i = 0; i < n_sub; i++ ) {
-		cout<<"\tSubject "<< (i+1) << ": " << w_marks.gpa[i] << endl;
-	}
-	cout <<"CGPA: " << w_marks.cgpa << endl;
-	getch();*/
 	fout.open( "Files/details.dat", ios::out | ios::app | ios::binary );
 	fout.seekp( p_pos_file , ios_base::beg );
 	if( fout.is_open() ){
@@ -221,9 +206,9 @@ void std_marks::show_marks() {
 	return;
 }
 
-//Class Functions END HERE
+//---------------CLASS FUNCTIONS END HERE---------------//
 
-//Program Functions...
+//---------------PROGRAM FUNCTIONS---------------//
 
 void check_config(){		
 	char word[30];
@@ -262,11 +247,11 @@ void check_config(){
 				char*marks = &range[0];
 				switch(i){
 					case 0:
-						n_fa = conv_to_int( marks );
+						tm_fa = conv_to_int( marks );
 						break;
 						
 					case 1:
-						n_gpa = conv_to_int( marks );
+						tm_gpa = conv_to_int( marks );
 						break;
 				}
 			}
@@ -274,37 +259,59 @@ void check_config(){
 		range = "\0";
 	}
 	cfg.close();
-	//cout<<n_fa<<" : "<<n_gpa;
+	//cout<<tm_fa<<" : "<<tm_gpa;
 }
 
 void get_marks(){
+	char temp[20];
+//	cin.ignore();
 	cout<<"Enter marks:- \n";
 	for( int i = 0 ; i < n_sub ; i++ ){
+		COORD pos;
 		cout<<"\tSubject "<< (i+1) << ": ";
-		cin>>marks[i];
-		if( ( marks[i] <= n_fa ) && ( marks[i] >= 0 ) ){
-			continue;
-		}
-		else{
-			cout<<"Marks lie out of range. \nRange: 0-"<<n_fa;
-			getch();
-			cout<<"\r";
-			gotoXY( 0 , -2 , 1 );
-			cout<<"       \n                              \n                \r";
-			gotoXY( 0 , -2 , 1 );
-			marks[i] = 0;
-			i--;
+		pos.X = getX();
+		pos.Y = getY();
+		cin.getline( temp, 20 );
+		// work with getline
+		for( int j = 0; j < strlen(temp); j++ ) {
+			if( isalpha( temp[i] ) ) {
+				cout << "\tInvalid Marks\n\tPress any key to retry\n";
+				getch();
+				clean_slate( pos.X, pos.Y );
+				marks[i] = 0;
+				cin.getline( temp , 20 );
+				j = 0;
+			}
+			marks[i] = conv_to_int( temp );
+			while( !( ( marks[i] <= tm_fa ) && ( marks[i] >= 0 ) ) ) {
+				cout << "\tInvalid Marks\n\tPress any key to retry\n";
+				getch();
+				clean_slate( pos.X, pos.Y );
+				marks[i] = 0;
+				cin.getline( temp , 20 );
+				j = 0;
+				//cin >> marks[i];
+			}
 		}
 	}
 	
-	for( int i = 0 ; i < n_sub ; i++ ){
+	/*for( int i = 0 ; i < n_sub ; i++ ){
 		cout<<endl<<"PERC: "<<w_marks.calc_perc(i);	
 	}
 	
 	for( int i = 0 ; i < n_sub ; i++ ){
 		cout<<endl<<"GPA:"<<w_marks.calc_gpa(i);	
 	}
-	cout<<endl<<"CGPA: "<<w_marks.calc_cgpa();
+	cout<<endl<<"CGPA: "<<w_marks.calc_cgpa();*/
+	cout<<"Percentage:- \n";
+		for( int i = 0; i < n_sub; i++ ) {
+			cout<<"\tSubject "<< (i+1) << ": " << w_marks.calc_perc(i) << endl;
+		}
+		cout<<"GPA:- \n";
+		for( int i = 0; i < n_sub; i++ ) {
+			cout<<"\tSubject "<< (i+1) << ": " << w_marks.calc_gpa(i) << endl;	
+		}
+		cout <<"CGPA: " << w_marks.calc_cgpa() << endl;
 	/*fstream fout;
 	fout.open( "Files/Marks.bin", ios::out | ios::app | ios::binary );
 	fout.write( (char*)&st_marks, sizeof( std_marks ) );
@@ -312,3 +319,4 @@ void get_marks(){
 	return;
 }
 
+//---------------PROGRAM FUNCTIONS END HERE---------------//
