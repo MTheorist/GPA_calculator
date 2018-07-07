@@ -1,11 +1,11 @@
 //This is the config file for the GPA calculator program.
-//Do not tamper with or alter this file as it may result in total annihilation of the 
-//program.
+//Do not tamper with or alter this file as it may result in total annihilation of the program.
 //The values within "[  ]" should be only edited.
+//The forward-slash should not be removed, it may disrupt the functioning of the program.
 //The spaces between the variable, =, and the variable value is important.
 
 //Total marks in each FA. 
-n_fa = [25]
+tm_fa = [25]
 
 //Upper limit for GPA, lower being 0.
-n_gpa = [5]
+tm_gpa = [5]
