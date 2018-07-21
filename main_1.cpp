@@ -1,4 +1,4 @@
-#define n_sub 3
+ #define n_sub 3										//number of subjects can be changed according to need without affecting the finctionality of the program
 #include <iostream>
 #include <fstream>
 #include <string.h>
@@ -13,6 +13,8 @@ const int n_settings = 2;								//number of settings (variables, passwords...et
 int tm_fa = 0, tm_gpa = 0;
 int g_pos_file = 0, p_pos_file = 0;						//used for seek[g/p] and tell[g/p] functions to maniplate file
 char list[n_settings][10] = { "tm_fa" , "tm_gpa" };		//setting currently available in config.txt
+char* title = "GPA CALCULATOR";							//title of the program
+char* exit_statement = "//-----CLOSING PROGRAM-----//";
 const int name_len = 30;
 const int ID_len = 10;
 
@@ -26,7 +28,8 @@ class std_details{
 		char* assign_ID(); 			//assigns a unique roll number while keeping check on the used IDs 
 		void enter_details();		//function under construction...
 		void add_details();			//stores the entered details into the .bin file
-		void show_details(char*);	//extracts the data from the file and displays it
+		int show_details( char* );	//extracts the data from the file and displays it
+		char* getID();				//returns the ID assigned to the student
 }w_det, r_det;						//w_det: write details TO file; r_det:read details FROM file
 
 class std_marks{
@@ -35,29 +38,115 @@ class std_marks{
 	public:
 		std_details temp;
 		std_marks();
-		float calc_perc(int i); 	//calculates the percentage in each subject
-		float calc_gpa(int j); 		//calculates the GPA in each subject
+		float calc_perc( int ); 	//calculates the percentage in each subject
+		float calc_gpa( int ); 		//calculates the GPA in each subject
 		float calc_cgpa(); 			//calculates the CGPA in each subject
 		void add_marks();			//stores the entered marks into the .bin file
-		void show_marks(char*);		//extracts the data from the file and displays it
+		int show_marks( char* );	//extracts the data from the file and displays it
+		char* getID();
 }w_marks, r_marks;					//w_marks: writes marks To file; r_marks: read marks FROM file
 
 void check_config(); 				//checks the config file for any updates. 
+void teacher( int );				//for when the user is a teacher
+void student( void );				//for when the user is a student
 void get_marks();					//input marks of the student in total "n_sub" subjects
+void write_data();					//write the data of the human and also the marks
+int read_data( char* , int );		//read the data of the human and also the marks
+void wrong_choice( void );			//when user inputs a wrong choice [ PS: the code is very short but it was used multiple times ]
+void exit_animation( void );		//super sexy way to slide ino DM's... JK animation to exit the program
 
 //---------------MAIN PROGRAM---------------//
  
 int main(){
+	char category;
+	COORD pos;
 	check_config();
-//	w_det.enter_details();
-//	get_marks();
-//	w_det.add_details();
-//	w_marks.add_marks();
+	char temp_title[5000];
+	strcpy( temp_title, ascii_heading( title ) );
+	rand_animation( temp_title, 't', 3000, 1);
+	RETRY:
+	pos.X = getX();
+	pos.Y = getY();
+	cout<<endl<<endl;
+	cout<<"Enter Category:- \n";
+	cout<< "\t1.Teacher \n\t2.Student \n:: ";
+	category = getch();
+	cout<<category<<endl;
+	if ( category == '1' ){
+		COORD pos_1;
+		char choice;
+		clean_slate( pos.X , pos.Y );
+		cout<<endl<<endl;
+		typeout( "//------TEACHER------//" , 't' , 1000);
+		cout<<endl<<endl;
+		RETRY_1:
+		pos_1.X = getX();
+		pos_1.Y = getY();
+		cout<<"Enter the operation you would like to perform:- \n";
+		cout<<"1.Enter new records \n2.View/Modify Previous Record \n3.Exit Program \n::";
+		choice = getch();
+		cout<<choice<<endl;
+		if( choice == '1' ){
+			clean_slate( pos_1.X , pos_1.Y );
+			cout<<endl<<endl;
+			teacher(1);
+			exit_animation();	
+		}
+		else if( choice == '2' ){
+			clean_slate( pos_1.X , pos_1.Y );
+			cout<<endl<<endl;
+			teacher(2);
+			exit_animation();	
+		}
+		else if( choice == '3' ){
+			exit_animation();
+		}
+		else{
+			clean_slate( pos_1.X , pos_1.Y );
+			wrong_choice();	
+			goto RETRY_1;
+		}	
+	}
+	else if( category == '2' ){
+		COORD pos_1;
+		char choice;
+		clean_slate( pos.X , pos.Y );
+		cout<<endl<<endl;
+		typeout( "//------STUDENT------//" , 't' , 1000);
+		cout<<endl<<endl;
+		RETRY_2:
+		pos_1.X = getX();
+		pos_1.Y = getY();
+		cout<<"Enter the operation you would like to perform:- \n";
+		cout<<"1.View your Record \n2.Exit Program \n::";
+		choice = getch();
+		cout<<choice<<endl;
+		if( choice == '1' ){
+			clean_slate( pos_1.X , pos_1.Y );
+		//	cout<<"__A__"<<endl;
+			student();
+		//	cout<<"__B__"<<endl;
+			exit_animation();
+		}
+		else if( choice == '2' ){
+			exit_animation();	
+		}
+		else{
+			clean_slate( pos_1.X , pos_1.Y );
+			wrong_choice();	
+			goto RETRY_2;
+		}
+	}
+	else{
+		clean_slate( pos.X , pos.Y );
+		wrong_choice();
+		goto RETRY;	
+	}
+	
 //	cout << endl;
 //	cout <<"Test output 1"<<endl;
-//	cout <<"Test output 2"<<endl;	
-	r_det.show_details( "A1" );
-	r_marks.show_marks( "A1" );
+//	cout <<"Test output 2"<<endl;
+
 //	cout <<"Test output 3"<<endl;
 	return 0;	
 }
@@ -68,6 +157,10 @@ int main(){
 
 //class: std_details [student details]
 
+char* std_details::getID() {
+	return ID;
+}
+
 std_details::std_details(){
 	for(int i=0 ; i<name_len ; i++ ){
 		name[i] = '\0';	
@@ -76,7 +169,8 @@ std_details::std_details(){
 		ID[i] = '\0';	
 	}
 	sec = '\0';
-	s_class = 0;	
+	s_class = 0;
+	return;
 }
 
 char* std_details::assign_ID(){
@@ -86,17 +180,12 @@ char* std_details::assign_ID(){
 	char id[ID_len];
 	fstream fin_txt, fin_dat;
 	fin_txt.open( "Files/unique_id.txt", ios::in );
-	fin_dat.open( "Files/details.dat", ios::in | ios::binary );
-	do {
-		if( (counter % 2) == 0 ){
-			fin_txt >> id;
-			//cout<<id;
+	while( fin_txt >> id ) {
+		if( !read_data( id, 0 ) ) {
+			strcmp( ID, id );
+			break;
 		}
-		counter++;
-	}while( fin_dat.read( (char*)&r_det, sizeof( std_details ) ) );
-
-//	cout << id << endl;
-	fin_dat.close();
+	}
 	fin_txt.close();
 	return id;
 }
@@ -127,35 +216,23 @@ void std_details::add_details(){
 	return;
 }
 
-void std_details::show_details( char* id ) {
-	ifstream fin;
-	fin.open( "Files/details.dat", ios::in | ios::binary );
-	//fin.seekg(0);
-	
-	
-	while( fin.read( (char*)&r_det, sizeof( std_details ) ) ) {
-		/*
+int std_details::show_details( char* id ) {
+	if( strcmp( r_det.ID, id ) == 0 ) {
 		cout<< "Name: " << r_det.name << endl;
 		cout<< "ID: " << r_det.ID << endl;
 		cout<< "Class: " << r_det.s_class << endl;
 		cout<< "Section: " << r_det.sec << endl;
-		g_pos_file = fin.tellg();
-		*/
-		if( strcmp( r_det.ID, id ) == 0 ) {
-			cout<< "Name: " << r_det.name << endl;
-			cout<< "ID: " << r_det.ID << endl;
-			cout<< "Class: " << r_det.s_class << endl;
-			cout<< "Section: " << r_det.sec << endl;
-			g_pos_file = fin.tellg();
-			break;
-		}
+		return 1;
 	}
 //	cout<<g_pos_file<<endl;
-	fin.close();
-	return;
+	return 0;
 }
 
 //class: std_marks [student marks]
+
+char* std_marks::getID() {
+	return ID;
+}
 
 std_marks::std_marks(){
 		for(int i=0 ; i< n_sub ; i++){
@@ -199,31 +276,25 @@ void std_marks::add_marks(){
 	return;
 }
 
-void std_marks::show_marks( char* id ) {
-	ifstream fin;
-	fin.open( "Files/details.dat", ios::in | ios::binary );
-	fin.seekg(g_pos_file, ios_base::beg);
-	while( fin.read( (char*)&r_marks, sizeof( std_marks ) ) ) {
-		if( strcmp( r_marks.ID , id ) == 0 ){
-			cout<<"Marks:- \n";
-			for( int i = 0; i < n_sub; i++ ) {
-				marks_1[i] = (r_marks.perc[i] * tm_fa)/100;
-				cout<<"\tSubject "<< (i+1) << ": " << marks_1[i] << endl;
-			}
-			cout<<"Percentage:- \n";
-			for( int i = 0; i < n_sub; i++ ) {
-				cout<<"\tSubject "<< (i+1) << ": " << r_marks.perc[i] << endl;
-			}
-			cout<<"GPA:- \n";
-			for( int i = 0; i < n_sub; i++ ) {
-				cout<<"\tSubject "<< (i+1) << ": " << r_marks.gpa[i] << endl;
-			}
-			cout <<"CGPA: " << r_marks.cgpa << endl;
-			break;
+ int std_marks::show_marks( char* id ) {
+	if( strcmp( r_marks.ID , id ) == 0 ){
+		cout<<"Marks:- \n";
+		for( int i = 0; i < n_sub; i++ ) {
+			marks_1[i] = (r_marks.perc[i] * tm_fa)/100;
+			cout<<"\tSubject "<< (i+1) << ": " << marks_1[i] << endl;
 		}
+		cout<<"Percentage:- \n";
+		for( int i = 0; i < n_sub; i++ ) {
+			cout<<"\tSubject "<< (i+1) << ": " << r_marks.perc[i] << endl;
+		}
+		cout<<"GPA:- \n";
+		for( int i = 0; i < n_sub; i++ ) {
+			cout<<"\tSubject "<< (i+1) << ": " << r_marks.gpa[i] << endl;
+		}
+		cout <<"CGPA: " << r_marks.cgpa << endl;
+		return 1;
 	}
-	fin.close();
-	return;
+	return 0;
 }
 
 //---------------CLASS FUNCTIONS END HERE---------------//
@@ -282,6 +353,74 @@ void check_config(){
 	//cout<<tm_fa<<" : "<<tm_gpa;
 }
 
+void teacher( int op ){
+	if( op == 1 ){
+		int n_std;
+		cout<<"Enter the number of students you want to enter the details of: ";
+		cin >> n_std;
+		for( int i=0 ; i<n_std ; i++){
+			w_det.enter_details();
+			get_marks();
+			write_data();
+		}
+	}
+	if( op == 2 ){
+		char id[ID_len];
+		char choice;
+		
+		
+		strcpy( id, "\0" );
+		COORD pos;
+		pos.X = getX();
+		pos.Y = getY();
+		cout<<"Enter the assigned ID of the student: ";
+		cin>>id;
+		while( !read_data( id, 1 ) ) {
+			
+			cout<<"The desired record either doesn't exist or the given ID is invalid.";
+			cout<<"\nPress any key to continue.";
+			getch();
+			clean_slate( pos.X , pos.Y );
+		}
+		RETRY:
+			pos.X = getX();
+			pos.Y = getY();
+		cout<<"Would you like to modify the data [y/n]: ";
+		choice = getch();
+		cout<<choice;
+		if( islower( choice ) ){
+			choice = toupper( choice );	
+		}
+		if ( choice == 'Y' || choice == 'N' ){
+			
+		}
+		else{
+			clean_slate( pos.X , pos.Y );
+			wrong_choice();
+			goto RETRY;	
+		}
+	}
+	return;
+}
+
+void student(){
+	char id[ID_len];
+	strcpy( id, "\0" );
+	COORD pos;
+	pos.X = getX();
+	pos.Y = getY();
+	cout<<"Enter your ID: ";
+	cin>>id;
+	while( !read_data( id, 1 ) ) {
+		cout<<"The desired record either doesn't exist or the given ID is invalid.";
+		cout<<"\nPress any key to continue.";
+		getch();
+		clean_slate( pos.X , pos.Y );
+	}
+	
+	return;
+}
+
 void get_marks(){
 	char temp[20];
 	cin.ignore();
@@ -337,6 +476,64 @@ void get_marks(){
 	fout.write( (char*)&st_marks, sizeof( std_marks ) );
 	fout.close();*/
 	return;
+}
+
+void write_data() {
+	w_det.add_details();
+	w_marks.add_marks();
+	//std_details();
+	//std_marks();
+	return;
+}
+
+int read_data( char* id, int show_data ) {
+	fstream fin;
+	fin.open( "Files/details.dat", ios::in | ios::binary );
+	while( fin ) {
+		fin.read( (char*)&r_det, sizeof( std_details ) );
+		fin.read( (char*)&r_marks, sizeof( std_marks ) );
+		fin.read( (char*)&marks, sizeof( marks ) );
+		if( strcmp( id, r_det.getID() ) == 0 ) {
+			if( show_data ) {
+				r_det.show_details( id );
+				r_marks.show_marks( id );
+			}
+			fin.close();
+			return 1;
+		}
+	}
+	fin.close();
+	return 0;
+}
+
+void wrong_choice(){
+	COORD pos;
+	pos.X = getX();
+	pos.Y = getY();
+	cout<<endl<<endl;
+	cout<<"Wrong input. Please enter a valid choice.";
+	cout<<"\nPress any key to retry...";
+	getch();
+	clean_slate( pos.X , pos.Y );
+	return;	
+}
+
+void exit_animation(){
+	COORD pos;
+	center_align( strlen( exit_statement ) );
+	pos.X = getX();
+	pos.Y = getY();
+	typeout(exit_statement , 't' , 1000);
+	Sleep(500);
+	for(int i=0 ; i < 2 ; i++ ){
+		clean_slate( pos.X , pos.Y );
+		Sleep(100);
+		cout<<exit_statement;
+		if( i <= 1 ){
+			Sleep(500);	
+		}
+	}
+	exit(0);
 }
 
 //---------------PROGRAM FUNCTIONS END HERE---------------//
