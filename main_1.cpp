@@ -5,6 +5,7 @@
 #include <string.h>
 #include <windows.h>
 #include <conio.h>
+#include <cstdio>	// for file deletion
 #include "lexicon.h"
 
 using namespace std;
@@ -52,6 +53,8 @@ void teacher( int );				//for when the user is a teacher
 void student( void );				//for when the user is a student
 void get_marks();					//input marks of the student in total "n_sub" subjects
 void write_data();					//write the data of the human and also the marks
+void modify_data( char* );			// modify a record saved in the database
+void delete_data( char* );			// delete a record saved in the database
 int read_data( char* , int );		//read the data of the human and also the marks
 void wrong_choice( void );			//when user inputs a wrong choice [ PS: the code is very short but it was used multiple times ]
 void exit_animation( void );		//super sexy way to slide ino DM's... JK animation to exit the program
@@ -393,7 +396,13 @@ void teacher( int op ){
 			choice = toupper( choice );	
 		}
 		if ( choice == 'Y' || choice == 'N' ){
-			
+			switch( choice ) {
+				case 'Y':
+					
+					break;
+				case 'N':
+					break;
+			}
 		}
 		else{
 			clean_slate( pos.X , pos.Y );
@@ -538,4 +547,54 @@ void exit_animation(){
 	exit(0);
 }
 
+void modify_data( char* id ) {
+	if( !read_data( id, 0 ) )	cout << "Error, Record not found";	// something if record not found
+	else {
+		// getting new data from user
+		w_det.enter_details();
+		get_marks();
+		
+		// modifying in the file
+		fstream f;
+		f.open( "Files/details.dat", ios::in | ios::binary | ios::out );
+		while( f ) {
+			int cur = f.tellg();
+			f.read( (char*)&r_det, sizeof( std_details ) );
+			f.read( (char*)&r_marks, sizeof( std_marks ) );
+			f.read( (char*)&marks, sizeof( marks ) );
+			if( strcmp( id, r_det.getID() ) == 0 ) {
+				f.seekp( cur, ios::beg );
+				f.write( (char*)&w_det, sizeof( std_details ) );
+				f.write( (char*)&w_marks, sizeof( std_marks ) );
+				f.write( (char*)&marks, sizeof( marks ) );
+				break;
+			}
+		}
+	}
+	return;
+}
+
+void delete_data( char* id ) {
+	if( !read_data( id, 0 ) )	cout << "Error, Reocrd not found";	// something if record not found
+	else {
+		fstream fin, fout;
+		fin.open( "Files/details.dat", ios::in | ios::binary );
+		fout.open( "Files/temp.dat", ios::out | ios::binary );
+		while( fin ) {
+			fin.read( (char*)&r_det, sizeof( std_details ) );
+			fin.read( (char*)&r_marks, sizeof( std_marks ) );
+			fin.read( (char*)&marks, sizeof( marks ) );
+			if( strcmp( id, r_det.getID() ) != 0 ) {
+				fout.read( (char*)&r_det, sizeof( std_details ) );
+				fout.read( (char*)&r_marks, sizeof( std_marks ) );
+				fout.read( (char*)&marks, sizeof( marks ) );
+			}
+		}
+		fin.close();
+		fout.close();
+		remove( "Files/std_details.dat" );
+		rename( "Files/temp.dat", "Files/std_details.dat" );
+	}
+	return;
+}
 //---------------PROGRAM FUNCTIONS END HERE---------------//
