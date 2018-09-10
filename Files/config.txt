@@ -7,5 +7,5 @@
 //Total marks in each FA. 
 tm_fa = [25]
 
-//Upper limit for GPA, lower being 0.
+//Upper limit for GPA, lower being 1.
 tm_gpa = [5]
