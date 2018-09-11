@@ -42,7 +42,7 @@ COORD cursor_position;	// To hold the current postion of the cursor
 	char* select_file(char*, int);	// User can browse files on the console and either select a file or a folder
 	
 	void typeout(char*, char, int);	// Output a string on the console as if being typed
-	char* ascii_heading( char*);	// Creates a stylish heading made with lines and dashes
+	const char* ascii_heading( char*);	// Creates a stylish heading made with lines and dashes
 	void rand_animation( char*, char, int, int);	// Displays the text in an animated form ( characters show up randomly )
 	
 	void clean_slate( int, int ); // Cleans the screen to the given coordinates
@@ -166,7 +166,7 @@ time_type:
 	return;
 }
 
-char* ascii_heading( char* message ) {
+char* ascii_heading(const char* message ) {
 	int m = 0;
 	int x = 0;
 	char message_refined[200];
